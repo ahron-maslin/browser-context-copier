@@ -1,0 +1,46 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  width: 260px;
+}
+
+.popup {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popup__title {
+  font-size: 14px;
+  margin: 0 0 4px;
+}
+
+.popup__status {
+  font-size: 12px;
+  color: #555;
+  margin: 0 0 4px;
+}
+
+.popup__button {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f7f7f7;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+}
+
+.popup__button--primary {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+  font-weight: 600;
+}
+
+.popup__settings-link {
+  font-size: 12px;
+  color: #555;
+  text-decoration: none;
+}

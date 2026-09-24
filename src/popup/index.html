@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Browser Context Copier</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <h1 class="popup__title">Browser Context Copier</h1>
+      <p class="popup__status" id="status">Copying page…</p>
+      <button class="popup__button popup__button--primary" id="copy-page">📋 Copy Page</button>
+      <button class="popup__button" id="copy-selection">✂ Copy Selection</button>
+      <button class="popup__button" id="screenshot">📸 Screenshot</button>
+      <hr />
+      <a class="popup__settings-link" id="open-settings" href="#">⚙ Settings</a>
+    </main>
+    <script type="module" src="popup.ts"></script>
+  </body>
+</html>
