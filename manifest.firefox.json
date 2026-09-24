@@ -37,7 +37,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "browser-context-copier@aronmaslin.dev",
+      "id": "{5e24f074-3d8b-4839-b50c-c96561cc98cc}",
       "strict_min_version": "115.0"
     }
   }
