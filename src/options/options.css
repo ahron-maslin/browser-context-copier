@@ -5,7 +5,27 @@ body {
   max-width: 480px;
 }
 
-.options__placeholder {
-  color: #555;
-  font-size: 13px;
+.options__field,
+.options__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.options__field {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.options__field select {
+  font-size: 14px;
+  padding: 4px 6px;
+}
+
+.options__status {
+  color: #16a34a;
+  font-size: 12px;
+  min-height: 16px;
 }

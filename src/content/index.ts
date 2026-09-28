@@ -1,11 +1,12 @@
 import { extractPage } from "@content/extractor";
 import { selectionToBlocks } from "@content/selection";
 import { blocksToMarkdown } from "@content/markdown";
+import { blocksToPlainText } from "@content/plain-text";
 import { blocksToHtml } from "@content/html-output";
 import { writeToClipboard } from "@content/clipboard";
 import { escapeHtml } from "@content/inline";
-import { DEFAULT_SETTINGS } from "@shared/types";
-import type { ContentBlock, CopyMode, CopyResult, PageContext } from "@shared/types";
+import { getSettings } from "@shared/settings";
+import type { ContentBlock, CopyMode, CopyResult, ExtensionSettings, PageContext } from "@shared/types";
 
 declare global {
   interface Window {
@@ -14,23 +15,24 @@ declare global {
   }
 }
 
-function pageHeaderMarkdown(page: PageContext): string {
-  const lines = [`# ${page.title || "Untitled page"}`, ""];
-  if (DEFAULT_SETTINGS.includeUrl && page.url) lines.push(`Source: ${page.url}`);
-  if (DEFAULT_SETTINGS.includeMetadata) {
+function pageHeader(page: PageContext, settings: ExtensionSettings, markdown: boolean): string {
+  const title = page.title || "Untitled page";
+  const lines = [markdown ? `# ${title}` : title, ""];
+  if (settings.includeUrl && page.url) lines.push(`Source: ${page.url}`);
+  if (settings.includeMetadata) {
     if (page.author) lines.push(`Author: ${page.author}`);
     if (page.publishedDate) lines.push(`Published: ${page.publishedDate}`);
   }
-  lines.push("", "---");
+  lines.push("", markdown ? "---" : "----------");
   return lines.join("\n");
 }
 
-function pageHeaderHtml(page: PageContext): string {
+function pageHeaderHtml(page: PageContext, settings: ExtensionSettings): string {
   const parts = [`<h1>${escapeHtml(page.title || "Untitled page")}</h1>`];
-  if (DEFAULT_SETTINGS.includeUrl && page.url) {
+  if (settings.includeUrl && page.url) {
     parts.push(`<p>Source: <a href="${escapeHtml(page.url)}">${escapeHtml(page.url)}</a></p>`);
   }
-  if (DEFAULT_SETTINGS.includeMetadata) {
+  if (settings.includeMetadata) {
     if (page.author) parts.push(`<p>Author: ${escapeHtml(page.author)}</p>`);
     if (page.publishedDate) parts.push(`<p>Published: ${escapeHtml(page.publishedDate)}</p>`);
   }
@@ -38,8 +40,8 @@ function pageHeaderHtml(page: PageContext): string {
   return parts.join("");
 }
 
-function selectionHeaderMarkdown(): string {
-  return `Source: ${window.location.href}\n\n---`;
+function selectionHeader(markdown: boolean): string {
+  return `Source: ${window.location.href}\n\n${markdown ? "---" : "----------"}`;
 }
 
 function selectionHeaderHtml(): string {
@@ -49,23 +51,25 @@ function selectionHeaderHtml(): string {
 
 interface Extracted {
   blocks: ContentBlock[];
-  headerMarkdown: string;
+  header: string;
   headerHtml: string;
 }
 
-function extractForMode(mode: CopyMode): Extracted | null {
+function extractForMode(mode: CopyMode, settings: ExtensionSettings): Extracted | null {
+  const markdown = settings.outputFormat === "markdown";
+
   if (mode === "selection") {
     const blocks = selectionToBlocks(document);
     if (!blocks) return null;
-    return { blocks, headerMarkdown: selectionHeaderMarkdown(), headerHtml: selectionHeaderHtml() };
+    return { blocks, header: selectionHeader(markdown), headerHtml: selectionHeaderHtml() };
   }
 
   const page = extractPage(document, window.location.href);
   if (page.blocks.length === 0) return null;
   return {
     blocks: page.blocks,
-    headerMarkdown: pageHeaderMarkdown(page),
-    headerHtml: pageHeaderHtml(page),
+    header: pageHeader(page, settings, markdown),
+    headerHtml: pageHeaderHtml(page, settings),
   };
 }
 
@@ -73,7 +77,8 @@ async function run(): Promise<CopyResult> {
   const mode: CopyMode = window.__browserContextCopierMode ?? "page";
 
   try {
-    const extracted = extractForMode(mode);
+    const settings = await getSettings();
+    const extracted = extractForMode(mode, settings);
     if (!extracted) {
       return {
         ok: false,
@@ -82,10 +87,13 @@ async function run(): Promise<CopyResult> {
       };
     }
 
-    const markdownBody = blocksToMarkdown(extracted.blocks, DEFAULT_SETTINGS);
-    const htmlBody = blocksToHtml(extracted.blocks, DEFAULT_SETTINGS);
+    const body =
+      settings.outputFormat === "markdown"
+        ? blocksToMarkdown(extracted.blocks, settings)
+        : blocksToPlainText(extracted.blocks, settings);
+    const htmlBody = blocksToHtml(extracted.blocks, settings);
 
-    const text = `${extracted.headerMarkdown}\n\n${markdownBody}`;
+    const text = `${extracted.header}\n\n${body}`;
     const html = `${extracted.headerHtml}${htmlBody}`;
 
     return await writeToClipboard({ text, html });

@@ -8,7 +8,36 @@
   <body>
     <main class="options">
       <h1>Settings</h1>
-      <p class="options__placeholder">Extraction and formatting options will appear here.</p>
+
+      <label class="options__field">
+        <span>Output format</span>
+        <select id="output-format">
+          <option value="markdown">Markdown</option>
+          <option value="plain-text">Plain text</option>
+        </select>
+      </label>
+
+      <label class="options__checkbox">
+        <input type="checkbox" id="include-url" />
+        <span>Include the page URL</span>
+      </label>
+
+      <label class="options__checkbox">
+        <input type="checkbox" id="include-metadata" />
+        <span>Include author / published date when available</span>
+      </label>
+
+      <label class="options__checkbox">
+        <input type="checkbox" id="preserve-links" />
+        <span>Preserve links</span>
+      </label>
+
+      <label class="options__checkbox">
+        <input type="checkbox" id="include-image-descriptions" />
+        <span>Include image descriptions</span>
+      </label>
+
+      <p class="options__status" id="status" role="status"></p>
     </main>
     <script type="module" src="options.ts"></script>
   </body>
