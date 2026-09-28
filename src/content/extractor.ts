@@ -34,10 +34,9 @@ function findSemanticContainer(doc: Document): Element | null {
   return null;
 }
 
-function htmlStringToBlocks(doc: Document, html: string): ContentBlock[] {
-  const container = doc.createElement("div");
-  container.innerHTML = html;
-  return elementToBlocks(container);
+function htmlStringToBlocks(html: string): ContentBlock[] {
+  const parsed = new DOMParser().parseFromString(html, "text/html");
+  return elementToBlocks(parsed.body);
 }
 
 function escapeHtml(text: string): string {
@@ -82,7 +81,7 @@ export function extractPage(doc: Document, url: string): PageContext {
         author: readability.byline,
         publishedDate: readability.publishedTime,
       }),
-      blocks: htmlStringToBlocks(doc, readability.content),
+      blocks: htmlStringToBlocks(readability.content),
     };
   }
 

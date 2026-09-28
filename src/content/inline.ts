@@ -46,9 +46,8 @@ function parseInlineNodes(nodes: NodeListOf<ChildNode>): InlineToken[] {
 }
 
 export function parseInline(html: string): InlineToken[] {
-  const container = document.createElement("div");
-  container.innerHTML = html;
-  return parseInlineNodes(container.childNodes);
+  const parsed = new DOMParser().parseFromString(html, "text/html");
+  return parseInlineNodes(parsed.body.childNodes);
 }
 
 export function escapeHtml(text: string): string {
