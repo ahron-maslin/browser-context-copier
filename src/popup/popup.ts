@@ -1,4 +1,5 @@
 import { runCopyPageContext } from "@shared/copy-runner";
+import { copyScreenshotToClipboard } from "@shared/screenshot";
 import { browserAPI } from "@shared/browser-api";
 import type { CopyResult } from "@shared/types";
 
@@ -25,13 +26,21 @@ async function copySelection(): Promise<void> {
   renderResult(await runCopyPageContext("selection"));
 }
 
+async function captureScreenshot(): Promise<void> {
+  if (statusEl) statusEl.textContent = "Capturing screenshot…";
+  try {
+    await copyScreenshotToClipboard();
+    if (statusEl) statusEl.textContent = "✓ Screenshot copied to clipboard";
+  } catch (err) {
+    if (statusEl) {
+      statusEl.textContent = err instanceof Error ? err.message : "Screenshot failed.";
+    }
+  }
+}
+
 copyPageBtn?.addEventListener("click", () => void copyPage());
 copySelectionBtn?.addEventListener("click", () => void copySelection());
-
-if (screenshotBtn) {
-  screenshotBtn.disabled = true;
-  screenshotBtn.title = "Not implemented yet";
-}
+screenshotBtn?.addEventListener("click", () => void captureScreenshot());
 
 settingsLink?.addEventListener("click", (event) => {
   event.preventDefault();
