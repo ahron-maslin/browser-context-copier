@@ -4,55 +4,15 @@ import { blocksToMarkdown } from "@content/markdown";
 import { blocksToPlainText } from "@content/plain-text";
 import { blocksToHtml } from "@content/html-output";
 import { writeToClipboard } from "@shared/clipboard";
-import { escapeHtml } from "@content/inline";
+import { pageHeader, pageHeaderHtml, selectionHeader, selectionHeaderHtml } from "@content/header";
 import { getSettings } from "@shared/settings";
-import type {
-  ContentBlock,
-  CopyMode,
-  CopyPipelineResult,
-  ExtensionSettings,
-  PageContext,
-} from "@shared/types";
+import type { ContentBlock, CopyMode, CopyPipelineResult, ExtensionSettings } from "@shared/types";
 
 declare global {
   interface Window {
     __browserContextCopierMode?: CopyMode;
     __browserContextCopierResult?: Promise<CopyPipelineResult>;
   }
-}
-
-function pageHeader(page: PageContext, settings: ExtensionSettings, markdown: boolean): string {
-  const title = page.title || "Untitled page";
-  const lines = [markdown ? `# ${title}` : title, ""];
-  if (settings.includeUrl && page.url) lines.push(`Source: ${page.url}`);
-  if (settings.includeMetadata) {
-    if (page.author) lines.push(`Author: ${page.author}`);
-    if (page.publishedDate) lines.push(`Published: ${page.publishedDate}`);
-  }
-  lines.push("", markdown ? "---" : "----------");
-  return lines.join("\n");
-}
-
-function pageHeaderHtml(page: PageContext, settings: ExtensionSettings): string {
-  const parts = [`<h1>${escapeHtml(page.title || "Untitled page")}</h1>`];
-  if (settings.includeUrl && page.url) {
-    parts.push(`<p>Source: <a href="${escapeHtml(page.url)}">${escapeHtml(page.url)}</a></p>`);
-  }
-  if (settings.includeMetadata) {
-    if (page.author) parts.push(`<p>Author: ${escapeHtml(page.author)}</p>`);
-    if (page.publishedDate) parts.push(`<p>Published: ${escapeHtml(page.publishedDate)}</p>`);
-  }
-  parts.push("<hr>");
-  return parts.join("");
-}
-
-function selectionHeader(markdown: boolean): string {
-  return `Source: ${window.location.href}\n\n${markdown ? "---" : "----------"}`;
-}
-
-function selectionHeaderHtml(): string {
-  const url = escapeHtml(window.location.href);
-  return `<p>Source: <a href="${url}">${url}</a></p><hr>`;
 }
 
 interface Extracted {
@@ -67,7 +27,11 @@ function extractForMode(mode: CopyMode, settings: ExtensionSettings): Extracted 
   if (mode === "selection") {
     const blocks = selectionToBlocks(document);
     if (!blocks) return null;
-    return { blocks, header: selectionHeader(markdown), headerHtml: selectionHeaderHtml() };
+    return {
+      blocks,
+      header: selectionHeader(window.location.href, markdown),
+      headerHtml: selectionHeaderHtml(window.location.href),
+    };
   }
 
   const page = extractPage(document, window.location.href);
