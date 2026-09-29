@@ -3,15 +3,21 @@ import { selectionToBlocks } from "@content/selection";
 import { blocksToMarkdown } from "@content/markdown";
 import { blocksToPlainText } from "@content/plain-text";
 import { blocksToHtml } from "@content/html-output";
-import { writeToClipboard } from "@content/clipboard";
+import { writeToClipboard } from "@shared/clipboard";
 import { escapeHtml } from "@content/inline";
 import { getSettings } from "@shared/settings";
-import type { ContentBlock, CopyMode, CopyResult, ExtensionSettings, PageContext } from "@shared/types";
+import type {
+  ContentBlock,
+  CopyMode,
+  CopyPipelineResult,
+  ExtensionSettings,
+  PageContext,
+} from "@shared/types";
 
 declare global {
   interface Window {
     __browserContextCopierMode?: CopyMode;
-    __browserContextCopierResult?: Promise<CopyResult>;
+    __browserContextCopierResult?: Promise<CopyPipelineResult>;
   }
 }
 
@@ -73,7 +79,7 @@ function extractForMode(mode: CopyMode, settings: ExtensionSettings): Extracted 
   };
 }
 
-async function run(): Promise<CopyResult> {
+async function run(): Promise<CopyPipelineResult> {
   const mode: CopyMode = window.__browserContextCopierMode ?? "page";
 
   try {
@@ -83,6 +89,7 @@ async function run(): Promise<CopyResult> {
       return {
         ok: false,
         charCount: 0,
+        payload: null,
         error: mode === "selection" ? "No text is selected." : "No readable page content was detected.",
       };
     }
@@ -95,10 +102,24 @@ async function run(): Promise<CopyResult> {
 
     const text = `${extracted.header}\n\n${body}`;
     const html = `${extracted.headerHtml}${htmlBody}`;
+    const payload = { text, html };
 
-    return await writeToClipboard({ text, html });
+    const writeResult = await writeToClipboard(payload);
+    if (writeResult.ok) {
+      return { ok: true, charCount: writeResult.charCount, error: null, payload: null };
+    }
+
+    // The page's document commonly isn't focused when this ran because an
+    // extension popup was open and stole focus - hand the payload back so
+    // the caller can retry the write from its own (focused) context.
+    return { ok: true, charCount: text.length, error: null, payload };
   } catch (err) {
-    return { ok: false, charCount: 0, error: err instanceof Error ? err.message : String(err) };
+    return {
+      ok: false,
+      charCount: 0,
+      payload: null,
+      error: err instanceof Error ? err.message : String(err),
+    };
   }
 }
 

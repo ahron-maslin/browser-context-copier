@@ -41,6 +41,13 @@ export interface ClipboardPayload {
   html: string;
 }
 
+export interface CopyPipelineResult {
+  ok: boolean;
+  charCount: number;
+  error: string | null;
+  payload: ClipboardPayload | null;
+}
+
 export interface ExtensionSettings {
   outputFormat: "markdown" | "plain-text";
   includeUrl: boolean;

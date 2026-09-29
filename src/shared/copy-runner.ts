@@ -1,5 +1,6 @@
 import { browserAPI, getActiveTab, setBadge } from "@shared/browser-api";
-import type { CopyMode, CopyResult } from "@shared/types";
+import { writeToClipboard } from "@shared/clipboard";
+import type { CopyMode, CopyPipelineResult, CopyResult } from "@shared/types";
 
 const CONTENT_SCRIPT_FILE = "content/inject.js";
 const BADGE_SUCCESS_COLOR = "#16a34a";
@@ -41,14 +42,23 @@ export async function runCopyPageContext(
     const injectionResults = await browserAPI.scripting.executeScript({
       target: { tabId: tab.id },
       func: () =>
-        (window as unknown as { __browserContextCopierResult: CopyResult })
+        (window as unknown as { __browserContextCopierResult: CopyPipelineResult })
           .__browserContextCopierResult,
     });
 
-    const copyResult = injectionResults[0]?.result as CopyResult | undefined;
-    if (!copyResult) {
+    const raw = injectionResults[0]?.result as CopyPipelineResult | undefined;
+    if (!raw) {
       throw new Error("The content script did not return a result.");
     }
+
+    // The content script couldn't write to the clipboard itself (most often
+    // because the page's document wasn't focused - e.g. this popup stole
+    // focus when it opened) - retry from here, since this context should be
+    // the one currently focused.
+    const copyResult: CopyResult = raw.payload
+      ? await writeToClipboard(raw.payload)
+      : { ok: raw.ok, charCount: raw.charCount, error: raw.error };
+
     setBadge(tab.id, copyResult.ok ? "✓" : "!", copyResult.ok ? BADGE_SUCCESS_COLOR : BADGE_ERROR_COLOR);
     return copyResult;
   } catch (err) {
