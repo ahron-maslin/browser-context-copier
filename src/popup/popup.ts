@@ -1,7 +1,7 @@
 import { runCopyPageContext } from "@shared/copy-runner";
 import { copyScreenshotToClipboard } from "@shared/screenshot";
 import { browserAPI } from "@shared/browser-api";
-import type { CopyResult } from "@shared/types";
+import type { RunCopyResult } from "@shared/types";
 
 const statusEl = document.getElementById("status");
 const copyPageBtn = document.getElementById("copy-page");
@@ -9,15 +9,16 @@ const copySelectionBtn = document.getElementById("copy-selection");
 const screenshotBtn = document.getElementById("screenshot") as HTMLButtonElement | null;
 const settingsLink = document.getElementById("open-settings");
 
-function renderResult(result: CopyResult): void {
+function renderResult(result: RunCopyResult): void {
   if (!statusEl) return;
+  const label = result.effectiveMode === "selection" ? "Selection" : "Page";
   statusEl.textContent = result.ok
-    ? `✓ Page copied — ${result.charCount.toLocaleString()} characters`
+    ? `✓ ${label} copied — ${result.charCount.toLocaleString()} characters`
     : (result.error ?? "Something went wrong.");
 }
 
 async function copyPage(): Promise<void> {
-  if (statusEl) statusEl.textContent = "Copying page…";
+  if (statusEl) statusEl.textContent = "Copying…";
   renderResult(await runCopyPageContext("page"));
 }
 

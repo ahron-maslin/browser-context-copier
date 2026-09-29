@@ -31,13 +31,15 @@ describe("runCopyPageContext", () => {
     executeScriptMock
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce([{ result: { ok: true, charCount: 0, error: null, payload } }]);
+      .mockResolvedValueOnce([
+        { result: { ok: true, charCount: 0, error: null, payload, effectiveMode: "selection" } },
+      ]);
     writeToClipboardMock.mockResolvedValue({ ok: true, charCount: 5, error: null });
 
     const result = await runCopyPageContext("page", { id: 1, url: "https://example.com" });
 
     expect(writeToClipboardMock).toHaveBeenCalledWith(payload);
-    expect(result).toEqual({ ok: true, charCount: 5, error: null });
+    expect(result).toEqual({ ok: true, charCount: 5, error: null, effectiveMode: "selection" });
     expect(setBadgeMock).toHaveBeenCalledWith(1, "✓", "#16a34a");
   });
 
@@ -46,13 +48,13 @@ describe("runCopyPageContext", () => {
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce([
-        { result: { ok: true, charCount: 42, error: null, payload: null } },
+        { result: { ok: true, charCount: 42, error: null, payload: null, effectiveMode: "page" } },
       ]);
 
     const result = await runCopyPageContext("page", { id: 1, url: "https://example.com" });
 
     expect(writeToClipboardMock).not.toHaveBeenCalled();
-    expect(result).toEqual({ ok: true, charCount: 42, error: null });
+    expect(result).toEqual({ ok: true, charCount: 42, error: null, effectiveMode: "page" });
   });
 
   it("reports the page as inaccessible without attempting injection", async () => {
@@ -63,6 +65,7 @@ describe("runCopyPageContext", () => {
       ok: false,
       charCount: 0,
       error: "This page cannot be accessed by the extension.",
+      effectiveMode: "page",
     });
   });
 });

@@ -36,6 +36,10 @@ export interface CopyResult {
   error: string | null;
 }
 
+export interface RunCopyResult extends CopyResult {
+  effectiveMode: CopyMode;
+}
+
 export interface ClipboardPayload {
   text: string;
   html: string;
@@ -46,6 +50,7 @@ export interface CopyPipelineResult {
   charCount: number;
   error: string | null;
   payload: ClipboardPayload | null;
+  effectiveMode: CopyMode;
 }
 
 export interface ExtensionSettings {
