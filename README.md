@@ -30,3 +30,12 @@ Load `dist/chrome` as an unpacked extension via `chrome://extensions`, or
 `dist/firefox` via `about:debugging#/runtime/this-firefox` in Firefox.
 
 See `CLAUDE.md` for architecture and constraints.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+## Privacy
+
+See [PRIVACY.md](PRIVACY.md). Short version: this extension collects
+nothing, ever.

@@ -8,6 +8,14 @@
     "name": "Ahron Maslin",
     "email": "ahronkaylawedding@gmail.com"
   },
+  "homepage": "https://github.com/ahron-maslin/browser-context-copier",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ahron-maslin/browser-context-copier.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ahron-maslin/browser-context-copier/issues"
+  },
   "type": "module",
   "engines": {
     "node": ">=22.12.0"
