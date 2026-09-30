@@ -1,8 +1,13 @@
 {
   "name": "browser-context-copier",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Extract readable page content and copy it to the clipboard as clean Markdown, for pasting into an LLM.",
+  "license": "MIT",
+  "author": {
+    "name": "Ahron Maslin",
+    "email": "ahronkaylawedding@gmail.com"
+  },
   "type": "module",
   "engines": {
     "node": ">=22.12.0"
