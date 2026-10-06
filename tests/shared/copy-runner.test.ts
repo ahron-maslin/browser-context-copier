@@ -32,14 +32,31 @@ describe("runCopyPageContext", () => {
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce([
-        { result: { ok: true, charCount: 0, error: null, payload, effectiveMode: "selection" } },
+        {
+          result: {
+            ok: true,
+            charCount: 0,
+            error: null,
+            payload,
+            effectiveMode: "selection",
+            warning: null,
+            pageCount: 2,
+          },
+        },
       ]);
     writeToClipboardMock.mockResolvedValue({ ok: true, charCount: 5, error: null });
 
     const result = await runCopyPageContext("page", { id: 1, url: "https://example.com" });
 
     expect(writeToClipboardMock).toHaveBeenCalledWith(payload);
-    expect(result).toEqual({ ok: true, charCount: 5, error: null, effectiveMode: "selection" });
+    expect(result).toEqual({
+      ok: true,
+      charCount: 5,
+      error: null,
+      effectiveMode: "selection",
+      warning: null,
+      pageCount: 2,
+    });
     expect(setBadgeMock).toHaveBeenCalledWith(1, "✓", "#16a34a");
   });
 
@@ -48,13 +65,30 @@ describe("runCopyPageContext", () => {
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce(undefined)
       .mockResolvedValueOnce([
-        { result: { ok: true, charCount: 42, error: null, payload: null, effectiveMode: "page" } },
+        {
+          result: {
+            ok: true,
+            charCount: 42,
+            error: null,
+            payload: null,
+            effectiveMode: "page",
+            warning: "This is a lot of text.",
+            pageCount: 1,
+          },
+        },
       ]);
 
     const result = await runCopyPageContext("page", { id: 1, url: "https://example.com" });
 
     expect(writeToClipboardMock).not.toHaveBeenCalled();
-    expect(result).toEqual({ ok: true, charCount: 42, error: null, effectiveMode: "page" });
+    expect(result).toEqual({
+      ok: true,
+      charCount: 42,
+      error: null,
+      effectiveMode: "page",
+      warning: "This is a lot of text.",
+      pageCount: 1,
+    });
   });
 
   it("reports the page as inaccessible without attempting injection", async () => {
@@ -66,6 +100,8 @@ describe("runCopyPageContext", () => {
       charCount: 0,
       error: "This page cannot be accessed by the extension.",
       effectiveMode: "page",
+      warning: null,
+      pageCount: 1,
     });
   });
 });

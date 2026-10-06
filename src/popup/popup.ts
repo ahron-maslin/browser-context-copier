@@ -11,10 +11,14 @@ const settingsLink = document.getElementById("open-settings");
 
 function renderResult(result: RunCopyResult): void {
   if (!statusEl) return;
+  if (!result.ok) {
+    statusEl.textContent = result.error ?? "Something went wrong.";
+    return;
+  }
   const label = result.effectiveMode === "selection" ? "Selection" : "Page";
-  statusEl.textContent = result.ok
-    ? `✓ ${label} copied — ${result.charCount.toLocaleString()} characters`
-    : (result.error ?? "Something went wrong.");
+  const countNote = result.pageCount > 1 ? ` (${result.pageCount} pages accumulated)` : "";
+  const base = `✓ ${label} copied — ${result.charCount.toLocaleString()} characters${countNote}`;
+  statusEl.textContent = result.warning ? `${base} — ⚠ ${result.warning}` : base;
 }
 
 async function copyPage(): Promise<void> {

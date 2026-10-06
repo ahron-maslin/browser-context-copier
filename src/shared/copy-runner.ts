@@ -18,7 +18,14 @@ export async function runCopyPageContext(
   const tab = knownTab ?? (await getActiveTab());
 
   if (!tab?.id) {
-    return { ok: false, charCount: 0, error: "No active tab found.", effectiveMode: mode };
+    return {
+      ok: false,
+      charCount: 0,
+      error: "No active tab found.",
+      effectiveMode: mode,
+      warning: null,
+      pageCount: 1,
+    };
   }
   if (!isInjectableUrl(tab.url)) {
     return {
@@ -26,6 +33,8 @@ export async function runCopyPageContext(
       charCount: 0,
       error: "This page cannot be accessed by the extension.",
       effectiveMode: mode,
+      warning: null,
+      pageCount: 1,
     };
   }
 
@@ -63,7 +72,12 @@ export async function runCopyPageContext(
     const written = raw.payload
       ? await writeToClipboard(raw.payload)
       : { ok: raw.ok, charCount: raw.charCount, error: raw.error };
-    const copyResult: RunCopyResult = { ...written, effectiveMode: raw.effectiveMode };
+    const copyResult: RunCopyResult = {
+      ...written,
+      effectiveMode: raw.effectiveMode,
+      warning: raw.warning,
+      pageCount: raw.pageCount,
+    };
 
     setBadge(tab.id, copyResult.ok ? "✓" : "!", copyResult.ok ? BADGE_SUCCESS_COLOR : BADGE_ERROR_COLOR);
     return copyResult;
@@ -74,6 +88,8 @@ export async function runCopyPageContext(
       charCount: 0,
       error: err instanceof Error ? err.message : String(err),
       effectiveMode: mode,
+      warning: null,
+      pageCount: 1,
     };
   }
 }

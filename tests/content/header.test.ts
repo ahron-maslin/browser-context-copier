@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  AI_CONTEXT_CLOSING_NOTE,
   AI_CONTEXT_NOTE,
+  closingNote,
+  closingNoteHtml,
   pageHeader,
   pageHeaderHtml,
   selectionHeader,
@@ -71,5 +74,21 @@ describe("selectionHeaderHtml", () => {
     expect(selectionHeaderHtml("https://example.com/a")).toBe(
       `<p><em>${AI_CONTEXT_NOTE}</em></p><p>Source: <a href="https://example.com/a">https://example.com/a</a></p><hr>`,
     );
+  });
+});
+
+describe("closingNote", () => {
+  it("brackets the note in markdown", () => {
+    expect(closingNote(true)).toBe(`[${AI_CONTEXT_CLOSING_NOTE}]`);
+  });
+
+  it("leaves the note unbracketed in plain text", () => {
+    expect(closingNote(false)).toBe(AI_CONTEXT_CLOSING_NOTE);
+  });
+});
+
+describe("closingNoteHtml", () => {
+  it("renders as its own emphasized paragraph", () => {
+    expect(closingNoteHtml()).toBe(`<p><em>${AI_CONTEXT_CLOSING_NOTE}</em></p>`);
   });
 });

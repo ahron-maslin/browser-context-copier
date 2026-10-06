@@ -31,13 +31,14 @@ function parseInlineNodes(nodes: NodeListOf<ChildNode>): InlineToken[] {
       case "CODE":
         tokens.push({ kind: "code", text: el.textContent ?? "" });
         break;
-      case "A":
-        tokens.push({
-          kind: "link",
-          href: el.getAttribute("href") ?? "",
-          children: parseInlineNodes(el.childNodes),
-        });
+      case "A": {
+        const rawHref = el.getAttribute("href") ?? "";
+        // A same-page fragment link (citation markers, "back to top") points
+        // nowhere once this content is pasted elsewhere - render as plain text.
+        const href = rawHref.startsWith("#") ? "" : rawHref;
+        tokens.push({ kind: "link", href, children: parseInlineNodes(el.childNodes) });
         break;
+      }
       default:
         tokens.push(...parseInlineNodes(el.childNodes));
     }

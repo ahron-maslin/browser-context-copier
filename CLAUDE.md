@@ -30,13 +30,27 @@ an LLM chat.
 - The clipboard write happens inside that injected script (page context,
   still within the user gesture), not in the background service worker —
   service workers have no `document` and can't use the Clipboard API.
-- `src/background/background.ts` coordinates: it owns the
-  `action.onClicked`, `commands.onCommand`, and `contextMenus.onClicked`
-  listeners, and all three call the same injection routine.
-- The popup (`src/popup/`) is not a separate code path: on open it
-  triggers the same copy pipeline immediately and renders the result,
-  while also exposing secondary actions (Copy Selection, Screenshot,
-  Settings).
+- `src/background/background.ts` coordinates `commands.onCommand` and
+  `contextMenus.onClicked` — both call `runCopyPageContext`. There is no
+  `action.onClicked` listener: the manifest sets `default_popup`, which
+  means Chrome/Firefox never fire `onClicked` for the toolbar icon at all;
+  the popup is the only way that trigger reaches the pipeline.
+- The popup (`src/popup/`) is not a separate code path: on open it calls
+  the same `runCopyPageContext` immediately and renders the result, while
+  also exposing secondary actions (Copy Selection, Screenshot, Settings).
+  If the content script's own clipboard write fails (commonly because
+  the popup opening moved focus off the page's document), it hands the
+  `{text, html}` payload back instead of erroring, and `copy-runner.ts`
+  retries the write from wherever it's running — which is the popup's own
+  document when the popup was the caller, so it should be focused.
+- Append mode (`ExtensionSettings.appendMode`) never reads the real
+  system clipboard — that would violate "never read the clipboard"
+  above. It keeps its own running buffer in `storage.session`
+  (`src/shared/clipboard-accumulator.ts`) and writes the full combined
+  buffer every time. Each accumulated entry is a complete, already-
+  formatted page (header, body, closing note) joined by a plain-text
+  separator — not a restructured shared header — so accumulation needed
+  zero changes to the single-page formatting path.
 - Browser differences live only in `src/shared/browser-api.ts`
   (`browser` vs `chrome` namespace detection) and in the two manifests —
   never scatter `if (chrome) / if (browser)` conditionals elsewhere.

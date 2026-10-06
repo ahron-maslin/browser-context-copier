@@ -38,6 +38,8 @@ export interface CopyResult {
 
 export interface RunCopyResult extends CopyResult {
   effectiveMode: CopyMode;
+  warning: string | null;
+  pageCount: number;
 }
 
 export interface ClipboardPayload {
@@ -51,6 +53,8 @@ export interface CopyPipelineResult {
   error: string | null;
   payload: ClipboardPayload | null;
   effectiveMode: CopyMode;
+  warning: string | null;
+  pageCount: number;
 }
 
 export interface ExtensionSettings {
@@ -59,6 +63,7 @@ export interface ExtensionSettings {
   includeMetadata: boolean;
   preserveLinks: boolean;
   includeImageDescriptions: boolean;
+  appendMode: boolean;
 }
 
 export const DEFAULT_SETTINGS: ExtensionSettings = {
@@ -67,4 +72,5 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
   includeMetadata: true,
   preserveLinks: true,
   includeImageDescriptions: true,
+  appendMode: false,
 };
