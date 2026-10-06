@@ -6,7 +6,7 @@ import {
   CONTEXT_MENU_COPY_SELECTION,
 } from "@shared/constants";
 
-browserAPI.runtime.onInstalled.addListener(() => {
+browserAPI.runtime.onInstalled.addListener((details) => {
   browserAPI.contextMenus.create({
     id: CONTEXT_MENU_COPY_PAGE,
     title: "Copy page context",
@@ -17,6 +17,12 @@ browserAPI.runtime.onInstalled.addListener(() => {
     title: "Copy selected context",
     contexts: ["selection"],
   });
+
+  if (details.reason === "install") {
+    void browserAPI.tabs.create({
+      url: browserAPI.runtime.getURL("options/index.html?welcome=1"),
+    });
+  }
 });
 
 browserAPI.commands.onCommand.addListener((command, tab) => {

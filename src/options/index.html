@@ -7,6 +7,25 @@
   </head>
   <body>
     <main class="options">
+      <section id="welcome-panel" class="welcome" hidden>
+        <h2>Welcome to Browser Context Copier</h2>
+        <p>
+          This extension reads the page you're currently viewing, cleans it
+          up, and copies it to your clipboard as Markdown — ready to paste
+          into an LLM chat.
+        </p>
+        <p>Trigger it three ways:</p>
+        <ul class="welcome__list">
+          <li>Click the toolbar icon</li>
+          <li><kbd>Ctrl+Shift+C</kbd> (<kbd>Cmd+Shift+C</kbd> on Mac)</li>
+          <li>Right-click the page and choose it from the context menu</li>
+        </ul>
+        <p>
+          It collects no data and makes no network requests of any kind —
+          everything happens locally, in your browser.
+        </p>
+      </section>
+
       <h1>Settings</h1>
 
       <label class="options__field">
@@ -36,6 +55,16 @@
         <input type="checkbox" id="include-image-descriptions" />
         <span>Include image descriptions</span>
       </label>
+
+      <label class="options__checkbox">
+        <input type="checkbox" id="append-mode" />
+        <span>Append mode — add each copy to the clipboard instead of replacing it (handy for comparing a few pages before pasting once)</span>
+      </label>
+
+      <div class="options__accumulator" id="accumulator-row" hidden>
+        <span id="accumulator-count"></span>
+        <button type="button" id="clear-accumulator">Clear accumulated copies</button>
+      </div>
 
       <p class="options__status" id="status" role="status"></p>
     </main>
