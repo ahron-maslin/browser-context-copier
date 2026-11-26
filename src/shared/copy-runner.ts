@@ -2,13 +2,26 @@ import { browserAPI, getActiveTab, setBadge } from "@shared/browser-api";
 import { writeToClipboard } from "@shared/clipboard";
 import type { CopyMode, CopyPipelineResult, RunCopyResult } from "@shared/types";
 
-const CONTENT_SCRIPT_FILE = "content/inject.js";
+const CONTENT_SCRIPT_FILE = "/content/inject.js";
 const BADGE_SUCCESS_COLOR = "#16a34a";
 const BADGE_ERROR_COLOR = "#dc2626";
 
 function isInjectableUrl(url: string | undefined): boolean {
   if (!url) return false;
   return /^https?:\/\//.test(url) || url.startsWith("file://");
+}
+
+// Firefox reports a failed injection (e.g. a script it couldn't load) as an
+// `error` on the result rather than rejecting.
+function throwIfInjectionFailed(results: unknown): void {
+  if (!Array.isArray(results)) return;
+  for (const entry of results as Array<{ error?: unknown }>) {
+    if (entry?.error === undefined || entry.error === null) continue;
+    const { error } = entry;
+    const message =
+      typeof error === "object" && "message" in error ? String(error.message) : String(error);
+    throw new Error(message);
+  }
 }
 
 export async function runCopyPageContext(
@@ -39,19 +52,24 @@ export async function runCopyPageContext(
   }
 
   try {
-    await browserAPI.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: (injectedMode: CopyMode) => {
-        (window as unknown as { __browserContextCopierMode: CopyMode }).__browserContextCopierMode =
-          injectedMode;
-      },
-      args: [mode],
-    });
+    throwIfInjectionFailed(
+      await browserAPI.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: (injectedMode: CopyMode) => {
+          (
+            window as unknown as { __browserContextCopierMode: CopyMode }
+          ).__browserContextCopierMode = injectedMode;
+        },
+        args: [mode],
+      }),
+    );
 
-    await browserAPI.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: [CONTENT_SCRIPT_FILE],
-    });
+    throwIfInjectionFailed(
+      await browserAPI.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: [CONTENT_SCRIPT_FILE],
+      }),
+    );
 
     const injectionResults = await browserAPI.scripting.executeScript({
       target: { tabId: tab.id },
@@ -59,6 +77,7 @@ export async function runCopyPageContext(
         (window as unknown as { __browserContextCopierResult: CopyPipelineResult })
           .__browserContextCopierResult,
     });
+    throwIfInjectionFailed(injectionResults);
 
     const raw = injectionResults[0]?.result as CopyPipelineResult | undefined;
     if (!raw) {

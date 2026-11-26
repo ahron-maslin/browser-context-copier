@@ -91,6 +91,46 @@ describe("runCopyPageContext", () => {
     });
   });
 
+  it("injects the content bundle by a root-absolute path, since Firefox resolves relative paths against the calling page (e.g. popup/)", async () => {
+    executeScriptMock.mockResolvedValue([
+      {
+        result: {
+          ok: true,
+          charCount: 1,
+          error: null,
+          payload: null,
+          effectiveMode: "page",
+          warning: null,
+          pageCount: 1,
+        },
+      },
+    ]);
+
+    await runCopyPageContext("page", { id: 1, url: "https://example.com" });
+
+    expect(executeScriptMock).toHaveBeenCalledWith(
+      expect.objectContaining({ files: ["/content/inject.js"] }),
+    );
+  });
+
+  it("surfaces the browser's injection error instead of a generic missing-result message", async () => {
+    executeScriptMock
+      .mockResolvedValueOnce([{ frameId: 0 }])
+      .mockResolvedValueOnce([
+        {
+          frameId: 0,
+          error: { message: "Unable to load script: moz-extension://x/popup/content/inject.js" },
+        },
+      ])
+      .mockResolvedValueOnce([{ frameId: 0 }]);
+
+    const result = await runCopyPageContext("page", { id: 1, url: "https://example.com" });
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("Unable to load script: moz-extension://x/popup/content/inject.js");
+    expect(setBadgeMock).toHaveBeenCalledWith(1, "!", "#dc2626");
+  });
+
   it("reports the page as inaccessible without attempting injection", async () => {
     const result = await runCopyPageContext("page", { id: 1, url: "chrome://extensions" });
 
